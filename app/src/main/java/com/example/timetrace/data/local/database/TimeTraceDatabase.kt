@@ -9,7 +9,7 @@ import com.example.timetrace.data.model.Diary
 import com.example.timetrace.data.model.Schedule
 import com.example.timetrace.data.model.StringListConverter
 
-@Database(entities = [Schedule::class, Diary::class], version = 1, exportSchema = false)
+@Database(entities = [Schedule::class, Diary::class], version = 2, exportSchema = false)
 @TypeConverters(StringListConverter::class)
 abstract class TimeTraceDatabase : RoomDatabase() {
     abstract fun scheduleDao(): ScheduleDao

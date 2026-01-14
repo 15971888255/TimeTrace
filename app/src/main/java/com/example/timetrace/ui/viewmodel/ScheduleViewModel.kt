@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.timetrace.data.model.Schedule
 import com.example.timetrace.data.repository.MainRepository
 import com.example.timetrace.ui.widget.GlanceScheduleWidget
-import com.github.a6tail.lunar.Lunar
-import com.github.a6tail.lunar.Solar
+import com.nlf.calendar.Lunar
+import com.nlf.calendar.Solar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +17,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import javax.inject.Inject
+
+// Helper extension function to convert Solar to Calendar
+fun Solar.toCalendar(): Calendar {
+    val cal = Calendar.getInstance()
+    // Note: Solar library's month is 1-12, while Java Calendar is 0-11
+    cal.set(this.year, this.month - 1, this.day, this.hour, this.minute, this.second)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal
+}
 
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
@@ -34,22 +43,20 @@ class ScheduleViewModel @Inject constructor(
                 if (!schedule.isBirthday) {
                     processedSchedules.add(schedule)
                 } else {
-                    // It's a birthday, calculate this year's occurrence
                     val birthdayCalendar = Calendar.getInstance().apply { timeInMillis = schedule.timestamp }
 
                     val newTimestamp = if (schedule.isLunar) {
-                        val lunar = Lunar.fromDate(birthdayCalendar.time)
-                        val currentYearLunarBirthday = Lunar.fromYmd(currentYear, lunar.month, lunar.day)
-                        currentYearLunarBirthday.solar.calendar.timeInMillis
+                        val originalLunar = Lunar.fromDate(birthdayCalendar.time)
+                        val currentYearSolar = Lunar.fromYmd(currentYear, originalLunar.month, originalLunar.day).solar
+                        currentYearSolar.toCalendar().timeInMillis
                     } else {
-                        val solar = Solar.fromDate(birthdayCalendar.time)
-                        val currentYearSolarBirthday = Solar.fromYmd(currentYear, solar.month, solar.day)
-                        currentYearSolarBirthday.calendar.timeInMillis
+                        val originalSolar = Solar.fromDate(birthdayCalendar.time)
+                        val currentYearSolar = Solar.fromYmd(currentYear, originalSolar.month, originalSolar.day)
+                        currentYearSolar.toCalendar().timeInMillis
                     }
-
-                    // Only add if the birthday hasn't passed for this year
-                    if (newTimestamp >= today.timeInMillis) {
-                         processedSchedules.add(schedule.copy(timestamp = newTimestamp))
+                    
+                    if (newTimestamp.compareTo(today.timeInMillis) >= 0) {
+                        processedSchedules.add(schedule.copy(timestamp = newTimestamp))
                     }
                 }
             }
@@ -78,9 +85,8 @@ class ScheduleViewModel @Inject constructor(
 
     fun toggleScheduleCompletion(schedule: Schedule) {
         viewModelScope.launch {
-            // Prevent toggling completion for generated birthday instances
-            if (repository.getScheduleById(schedule.id) != null) {
-                 val updatedSchedule = schedule.copy(isCompleted = !schedule.isCompleted)
+            repository.getScheduleById(schedule.id)?.let { originalSchedule ->
+                 val updatedSchedule = originalSchedule.copy(isCompleted = !originalSchedule.isCompleted)
                  repository.updateSchedule(updatedSchedule)
                  updateWidget()
             }
@@ -89,7 +95,6 @@ class ScheduleViewModel @Inject constructor(
 
     fun deleteSchedule(schedule: Schedule) {
         viewModelScope.launch {
-            // Prevent deleting generated birthday instances, delete original instead
             repository.getScheduleById(schedule.id)?.let { originalSchedule ->
                 repository.deleteSchedule(originalSchedule)
                 updateWidget()

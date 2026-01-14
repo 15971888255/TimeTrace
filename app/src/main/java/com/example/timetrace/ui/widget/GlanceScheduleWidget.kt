@@ -95,7 +95,7 @@ private fun ScheduleWidgetItem(schedule: Schedule) {
                 .width(4.dp)
                 .height(24.dp) // Set a fixed height for the color bar
                 .background(getPriorityColor(schedule.priority))
-        )
+        ) {}
         Spacer(GlanceModifier.width(8.dp))
         Text(
             text = schedule.title,

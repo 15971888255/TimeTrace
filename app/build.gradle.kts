@@ -42,7 +42,7 @@ android {
     buildFeatures {
         compose = true
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -82,8 +82,8 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.0-rc01")
     implementation("androidx.glance:glance-material3:1.1.0-rc01")
 
-    // --- Lunar Calendar ---
-    implementation("com.github.6tail:lunar-kotlin:1.3.10")
+    // --- Lunar Calendar (Official from Maven Central) ---
+    implementation("cn.6tail:lunar:1.7.7")
 
     // --- Testing ---
     testImplementation("junit:junit:4.13.2")

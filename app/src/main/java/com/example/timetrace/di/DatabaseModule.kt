@@ -23,7 +23,7 @@ object DatabaseModule {
             context,
             TimeTraceDatabase::class.java,
             "timetrace_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
 
     @Provides
