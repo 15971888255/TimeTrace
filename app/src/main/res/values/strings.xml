@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TimeTrace</string>
+    <string name="widget_description">日程</string>
 </resources>

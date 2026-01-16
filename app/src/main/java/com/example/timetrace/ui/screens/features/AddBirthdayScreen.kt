@@ -41,7 +41,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBirthdayScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel()) {
+fun AddBirthdayScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel(), onDataChanged: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var isLunar by remember { mutableStateOf(false) }
     val calendar = Calendar.getInstance()
@@ -100,7 +100,8 @@ fun AddBirthdayScreen(navController: NavController, viewModel: ScheduleViewModel
                             (month.toIntOrNull() ?: (cal.get(Calendar.MONTH) + 1)) - 1,
                             day.toIntOrNull() ?: cal.get(Calendar.DAY_OF_MONTH)
                         )
-                        viewModel.addSchedule(name, cal.timeInMillis, 1, isLunar, isBirthday = true)
+                        viewModel.addSchedule(name, cal.timeInMillis, 1, notes = null, isLunar = isLunar, isBirthday = true)
+                        onDataChanged()
                         navController.popBackStack()
                     }
                 },

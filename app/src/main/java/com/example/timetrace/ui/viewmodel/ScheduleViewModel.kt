@@ -57,9 +57,9 @@ class ScheduleViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    fun addSchedule(title: String, timestamp: Long, priority: Int, isLunar: Boolean, isBirthday: Boolean) {
+    fun addSchedule(title: String, timestamp: Long, priority: Int, notes: String?, isLunar: Boolean, isBirthday: Boolean) {
         viewModelScope.launch {
-            repository.insertSchedule(Schedule(title = title, timestamp = timestamp, priority = priority, isLunar = isLunar, isBirthday = isBirthday))
+            repository.insertSchedule(Schedule(title = title, timestamp = timestamp, priority = priority, notes = notes, isLunar = isLunar, isBirthday = isBirthday))
         }
     }
 

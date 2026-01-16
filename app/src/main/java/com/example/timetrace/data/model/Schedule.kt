@@ -21,6 +21,7 @@ data class Schedule(
     val title: String,
     val timestamp: Long,
     val priority: Int,
+    val notes: String? = null, // Added notes field
     val isCompleted: Boolean = false,
     val isLunar: Boolean = false,
     val isBirthday: Boolean = false,

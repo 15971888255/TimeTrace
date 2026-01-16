@@ -85,8 +85,8 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.6.0")
 
     // --- Glance Widget ---
-    implementation("androidx.glance:glance-appwidget:1.1.0-rc01")
-    implementation("androidx.glance:glance-material3:1.1.0-rc01")
+    implementation("androidx.glance:glance-appwidget:1.1.0")
+    implementation("androidx.glance:glance-material3:1.1.0")
 
     // --- Lunar Calendar (Official from Maven Central) ---
     implementation("cn.6tail:lunar:1.7.7")

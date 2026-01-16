@@ -1,0 +1,12 @@
+package com.example.timetrace.di
+
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface CoroutineScopeEntryPoint {
+    fun coroutineScope(): CoroutineScope
+}

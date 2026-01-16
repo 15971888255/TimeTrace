@@ -62,7 +62,8 @@ import java.util.Locale
 @Composable
 fun AddRoutineScreen(
     navController: NavController,
-    viewModel: RoutineViewModel = hiltViewModel()
+    viewModel: RoutineViewModel = hiltViewModel(),
+    onDataChanged: () -> Unit
 ) {
     val context = LocalContext.current
     val routines by viewModel.routines.collectAsState()
@@ -134,6 +135,7 @@ fun AddRoutineScreen(
                         return@Button
                     }
                     viewModel.addRoutine(newRoutineTitle, selectedWeekdays.sorted(), hourInt, minuteInt)
+                    onDataChanged()
                     newRoutineTitle = ""
                     selectedWeekdays.clear()
                 } catch (e: NumberFormatException) {
@@ -147,7 +149,10 @@ fun AddRoutineScreen(
             Text("已保存的周期事项", style = MaterialTheme.typography.titleLarge)
             LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
                 items(routines, key = { it.id }) { routine ->
-                    RoutineItem(routine = routine, onDelete = { viewModel.deleteRoutine(routine) })
+                    RoutineItem(routine = routine, onDelete = {
+                        viewModel.deleteRoutine(routine)
+                        onDataChanged()
+                    })
                 }
             }
         }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,6 +24,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,23 +35,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.timetrace.data.model.Schedule
+import com.example.timetrace.ui.viewmodel.ScheduleViewModel
 import com.nlf.calendar.Lunar
 import com.nlf.calendar.Solar
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalendarScreen(navController: NavController) {
+fun CalendarScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel()) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+    val schedules by viewModel.allSchedules.collectAsState(initial = emptyList())
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("日历") },
+                title = { Text("日历", style = MaterialTheme.typography.headlineMedium) },
                 actions = {
                     IconButton(onClick = { currentMonth = YearMonth.now() }) {
                         Icon(Icons.Filled.Today, contentDescription = "今天")
@@ -74,7 +80,7 @@ fun CalendarScreen(navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
             WeekHeader()
             Spacer(modifier = Modifier.height(8.dp))
-            CalendarGrid(yearMonth = currentMonth)
+            CalendarGrid(yearMonth = currentMonth, schedules = schedules)
         }
     }
 }
@@ -96,7 +102,7 @@ fun CalendarHeader(
         }
         Text(
             text = yearMonth.format(formatter),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(horizontal = 24.dp)
         )
         IconButton(onClick = onNextMonth) {
@@ -114,14 +120,15 @@ fun WeekHeader() {
                 text = day,
                 modifier = Modifier.weight(1f),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
         }
     }
 }
 
 @Composable
-fun CalendarGrid(yearMonth: YearMonth) {
+fun CalendarGrid(yearMonth: YearMonth, schedules: List<Schedule>) {
     val daysInMonth = yearMonth.lengthOfMonth()
     val firstDayOfMonth = yearMonth.atDay(1)
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Sunday is 0, Saturday is 6
@@ -134,18 +141,21 @@ fun CalendarGrid(yearMonth: YearMonth) {
         dates.add(yearMonth.atDay(day))
     }
 
+    val schedulesByDate = schedules.groupBy { 
+        Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
+    }
+
     Column {
         val chunkedDates = dates.chunked(7)
         chunkedDates.forEach { week ->
-            Row(modifier = Modifier.fillMaxWidth().height(64.dp)) { // Set a fixed, sufficient height for each week's row
+            Row(modifier = Modifier.fillMaxWidth().height(64.dp)) { 
                 week.forEach { date ->
-                    Box(modifier = Modifier.weight(1f).fillMaxSize()) { // Remove aspectRatio, fill available space
+                    Box(modifier = Modifier.weight(1f).fillMaxSize()) { 
                         if (date != null) {
-                            DayCell(date = date)
+                            DayCell(date = date, hasEvent = schedulesByDate.containsKey(date))
                         }
                     }
                 }
-                // Fill remaining space in the last row if necessary
                 if (week.size < 7) {
                     for (i in 0 until (7 - week.size)) {
                         Spacer(modifier = Modifier.weight(1f).fillMaxSize())
@@ -157,7 +167,7 @@ fun CalendarGrid(yearMonth: YearMonth) {
 }
 
 @Composable
-fun DayCell(date: LocalDate) {
+fun DayCell(date: LocalDate, hasEvent: Boolean) {
     val solar = Solar(date.year, date.monthValue, date.dayOfMonth)
     val lunar = Lunar(solar)
 
@@ -175,7 +185,7 @@ fun DayCell(date: LocalDate) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center // Center content vertically within the taller cell
+        verticalArrangement = Arrangement.Center
     ) {
         Box(
             contentAlignment = Alignment.Center,
@@ -193,14 +203,24 @@ fun DayCell(date: LocalDate) {
             Text(
                 text = date.dayOfMonth.toString(),
                 style = MaterialTheme.typography.bodyLarge,
-                color = if (isToday) MaterialTheme.colorScheme.onPrimary else Color.Unspecified
+                color = if (isToday) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
             )
         }
-        Text(
-            text = lunarText,
-            fontSize = 9.sp,
-            color = if (isToday) MaterialTheme.colorScheme.primary else Color.Gray,
-            modifier = Modifier.offset(y = (-4).dp) // Apply a small negative offset
-        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Box(modifier = Modifier.height(14.dp), contentAlignment = Alignment.Center) {
+            if (hasEvent) {
+                Box(
+                    modifier = Modifier
+                        .size(4.dp)
+                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
+                )
+            } else {
+                Text(
+                    text = lunarText,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                )
+            }
+        }
     }
 }
