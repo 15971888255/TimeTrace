@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ScheduleDao {
-    @Query("SELECT * FROM schedules ORDER BY timestamp DESC")
+    @Query("SELECT * FROM schedules WHERE isBirthday = 0 ORDER BY timestamp DESC")
     fun getAllSchedules(): Flow<List<Schedule>>
+
+    @Query("SELECT * FROM schedules WHERE isBirthday = 1 ORDER BY timestamp DESC")
+    fun getAllBirthdays(): Flow<List<Schedule>>
 
     @Query("SELECT * FROM schedules WHERE id = :id LIMIT 1")
     suspend fun getScheduleById(id: Long): Schedule?

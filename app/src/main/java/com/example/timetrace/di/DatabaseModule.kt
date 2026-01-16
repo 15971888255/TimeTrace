@@ -2,6 +2,7 @@ package com.example.timetrace.di
 
 import android.content.Context
 import androidx.room.Room
+import com.example.timetrace.data.dao.RoutineDao
 import com.example.timetrace.data.local.dao.DiaryDao
 import com.example.timetrace.data.local.dao.ScheduleDao
 import com.example.timetrace.data.local.database.TimeTraceDatabase
@@ -36,5 +37,11 @@ object DatabaseModule {
     @Singleton
     fun provideDiaryDao(database: TimeTraceDatabase): DiaryDao {
         return database.diaryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRoutineDao(database: TimeTraceDatabase): RoutineDao {
+        return database.routineDao()
     }
 }

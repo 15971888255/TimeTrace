@@ -63,6 +63,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended") // Added this line for more icons
     debugImplementation("androidx.compose.ui:ui-tooling")
 
     // --- Room ---
@@ -74,6 +75,11 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-compiler:2.51.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
+
+    // --- WorkManager ---
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // --- Coil ---
     implementation("io.coil-kt:coil-compose:2.6.0")
