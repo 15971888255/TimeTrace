@@ -19,7 +19,7 @@ class TimeTraceApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
-        setupRecurringWork()
+        setupRoutineResetWorker()
     }
 
     override val workManagerConfiguration: Configuration
@@ -27,16 +27,15 @@ class TimeTraceApp : Application(), Configuration.Provider {
             .setWorkerFactory(workerFactory)
             .build()
 
-    private fun setupRecurringWork() {
-        val repeatingRequest = PeriodicWorkRequestBuilder<RoutineWorker>(
-            repeatInterval = 7, 
-            repeatIntervalTimeUnit = TimeUnit.DAYS
+    private fun setupRoutineResetWorker() {
+        val workRequest = PeriodicWorkRequestBuilder<RoutineWorker>(
+            1, TimeUnit.DAYS
         ).build()
 
-        WorkManager.getInstance(applicationContext).enqueueUniquePeriodicWork(
-            "routine-worker",
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "routineResetWork",
             ExistingPeriodicWorkPolicy.KEEP,
-            repeatingRequest
+            workRequest
         )
     }
 }

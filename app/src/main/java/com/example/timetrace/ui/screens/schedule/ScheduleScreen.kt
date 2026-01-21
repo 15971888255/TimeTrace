@@ -129,7 +129,7 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
                             onDelete = {
                                 scope.launch {
                                     viewModel.deleteSchedule(schedule)
-                                    updateAllWidgets(context, this)
+                                    updateAllWidgets(context)
                                 }
                             }
                         )
@@ -148,7 +148,7 @@ fun ScheduleScreen(navController: NavController, viewModel: ScheduleViewModel = 
                             onDelete = {
                                 scope.launch {
                                     viewModel.deleteSchedule(schedule)
-                                    updateAllWidgets(context, this)
+                                    updateAllWidgets(context)
                                 }
                             }
                         )

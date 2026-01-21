@@ -17,6 +17,9 @@ interface ScheduleDao {
     @Query("SELECT * FROM schedules WHERE isBirthday = 1 ORDER BY timestamp DESC")
     fun getAllBirthdays(): Flow<List<Schedule>>
 
+    @Query("SELECT * FROM schedules WHERE timestamp >= :startOfToday AND isCompleted = 0 ORDER BY timestamp ASC")
+    fun getUpcomingSchedules(startOfToday: Long): Flow<List<Schedule>>
+
     @Query("SELECT * FROM schedules WHERE id = :id LIMIT 1")
     suspend fun getScheduleById(id: Long): Schedule?
 
@@ -28,4 +31,7 @@ interface ScheduleDao {
 
     @Delete
     suspend fun delete(schedule: Schedule)
+
+    @Query("UPDATE schedules SET isCompleted = 0 WHERE isFromRoutine = 1")
+    suspend fun resetRoutinesCompletion()
 }

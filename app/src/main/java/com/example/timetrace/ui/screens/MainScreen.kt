@@ -1,7 +1,6 @@
 package com.example.timetrace.ui.screens
 
 import android.content.Intent
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -88,11 +87,10 @@ fun MainScreen() {
         NavHost(navController, startDestination = Screen.Calendar.route, Modifier.padding(innerPadding)) {
             composable(Screen.Schedule.route) { ScheduleScreen(navController) }
             composable(Screen.Calendar.route) { CalendarScreen(navController) }
-            composable("add_schedule_detail") { AddScheduleDetailScreen(navController) { updateAllWidgets(context, scope) } }
-            composable("add_birthday") { AddBirthdayScreen(navController) { updateAllWidgets(context, scope) } }
+            composable("add_schedule_detail") { AddScheduleDetailScreen(navController) { scope.launch { updateAllWidgets(context) } } }
+            composable("add_birthday") { AddBirthdayScreen(navController) { scope.launch { updateAllWidgets(context) } } }
             composable("add_routine") { 
-                Log.d("Navigation", "Navigating to AddRoutineScreen")
-                AddRoutineScreen(navController) { updateAllWidgets(context, scope) }
+                AddRoutineScreen(navController) { scope.launch { updateAllWidgets(context) } }
             }
             dialog(
                 route = "schedule_detail/{scheduleId}",
@@ -110,7 +108,7 @@ fun MainScreen() {
                     onDelete = { scheduleToDelete ->
                         scope.launch {
                             scheduleViewModel.deleteSchedule(scheduleToDelete)
-                            updateAllWidgets(context, scope)
+                            updateAllWidgets(context)
                         }
                     }
                 )

@@ -1,5 +1,9 @@
 package com.example.timetrace.ui.screens.calendar
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,9 +45,7 @@ import com.example.timetrace.data.model.Schedule
 import com.example.timetrace.ui.viewmodel.ScheduleViewModel
 import com.nlf.calendar.Lunar
 import com.nlf.calendar.Solar
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -52,7 +54,7 @@ import java.util.Locale
 @Composable
 fun CalendarScreen(navController: NavController, viewModel: ScheduleViewModel = hiltViewModel()) {
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
-    val schedules by viewModel.allSchedules.collectAsState(initial = emptyList())
+    val schedulesByDate by viewModel.schedulesByDate.collectAsState()
 
     Scaffold(
         topBar = {
@@ -80,7 +82,13 @@ fun CalendarScreen(navController: NavController, viewModel: ScheduleViewModel = 
             Spacer(modifier = Modifier.height(16.dp))
             WeekHeader()
             Spacer(modifier = Modifier.height(8.dp))
-            CalendarGrid(yearMonth = currentMonth, schedules = schedules)
+
+            AnimatedContent(
+                targetState = currentMonth,
+                transitionSpec = { fadeIn() togetherWith fadeOut() }, label = ""
+            ) { month ->
+                CalendarGrid(yearMonth = month, schedulesByDate = schedulesByDate)
+            }
         }
     }
 }
@@ -128,7 +136,7 @@ fun WeekHeader() {
 }
 
 @Composable
-fun CalendarGrid(yearMonth: YearMonth, schedules: List<Schedule>) {
+fun CalendarGrid(yearMonth: YearMonth, schedulesByDate: Map<LocalDate, List<Schedule>>) {
     val daysInMonth = yearMonth.lengthOfMonth()
     val firstDayOfMonth = yearMonth.atDay(1)
     val firstDayOfWeek = firstDayOfMonth.dayOfWeek.value % 7 // Sunday is 0, Saturday is 6
@@ -141,10 +149,6 @@ fun CalendarGrid(yearMonth: YearMonth, schedules: List<Schedule>) {
         dates.add(yearMonth.atDay(day))
     }
 
-    val schedulesByDate = schedules.groupBy { 
-        Instant.ofEpochMilli(it.timestamp).atZone(ZoneId.systemDefault()).toLocalDate()
-    }
-
     Column {
         val chunkedDates = dates.chunked(7)
         chunkedDates.forEach { week ->
@@ -152,7 +156,8 @@ fun CalendarGrid(yearMonth: YearMonth, schedules: List<Schedule>) {
                 week.forEach { date ->
                     Box(modifier = Modifier.weight(1f).fillMaxSize()) { 
                         if (date != null) {
-                            DayCell(date = date, hasEvent = schedulesByDate.containsKey(date))
+                            val eventsOnDate = schedulesByDate[date]
+                            DayCell(date = date, events = eventsOnDate ?: emptyList())
                         }
                     }
                 }
@@ -167,7 +172,7 @@ fun CalendarGrid(yearMonth: YearMonth, schedules: List<Schedule>) {
 }
 
 @Composable
-fun DayCell(date: LocalDate, hasEvent: Boolean) {
+fun DayCell(date: LocalDate, events: List<Schedule>) {
     val solar = Solar(date.year, date.monthValue, date.dayOfMonth)
     val lunar = Lunar(solar)
 
@@ -181,6 +186,10 @@ fun DayCell(date: LocalDate, hasEvent: Boolean) {
     }
 
     val isToday = date.isEqual(LocalDate.now())
+
+    // Filter out routine-based schedules for dot indication
+    val relevantEvents = events.filter { !it.isFromRoutine }
+    val hasBirthday = relevantEvents.any { it.isBirthday }
 
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -207,18 +216,21 @@ fun DayCell(date: LocalDate, hasEvent: Boolean) {
             )
         }
         Spacer(modifier = Modifier.height(2.dp))
-        Box(modifier = Modifier.height(14.dp), contentAlignment = Alignment.Center) {
-            if (hasEvent) {
+        
+        // Combined Box for Lunar text and Dot
+        Box(modifier = Modifier.height(14.dp), contentAlignment = Alignment.TopCenter) {
+            Text(
+                text = lunarText,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            )
+            if (relevantEvents.isNotEmpty()) {
+                val dotColor = if (hasBirthday) Color.Red else MaterialTheme.colorScheme.secondary
                 Box(
                     modifier = Modifier
+                        .padding(top = 10.dp) // Position dot below the text
                         .size(4.dp)
-                        .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                )
-            } else {
-                Text(
-                    text = lunarText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isToday) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        .background(dotColor, CircleShape)
                 )
             }
         }

@@ -20,8 +20,6 @@ suspend fun GlanceAppWidget.updateAll(context: Context) {
     }
 }
 
-fun updateAllWidgets(context: Context, scope: CoroutineScope) {
-    scope.launch {
-        GlanceScheduleWidget().updateAll(context)
-    }
+suspend fun updateAllWidgets(context: Context) {
+    GlanceScheduleWidget().updateAll(context)
 }

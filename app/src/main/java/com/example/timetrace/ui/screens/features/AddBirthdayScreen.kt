@@ -49,7 +49,10 @@ fun AddBirthdayScreen(navController: NavController, viewModel: ScheduleViewModel
     var month by remember { mutableStateOf((calendar.get(Calendar.MONTH) + 1).toString()) }
     var day by remember { mutableStateOf(calendar.get(Calendar.DAY_OF_MONTH).toString()) }
 
-    val birthdays by viewModel.birthdays.collectAsState()
+    val allSchedules by viewModel.allSchedules.collectAsState()
+    val birthdays = remember(allSchedules) {
+        allSchedules.filter { it.isBirthday }
+    }
 
     Scaffold(
         topBar = {
